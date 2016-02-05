@@ -10,7 +10,7 @@ from theano.tensor.nnet import relu
 X = tensor.tensor4('image_features')
 T = tensor.matrix('targets')
 
-batch_size = 128
+batch_size = 100
 image_border_size = 100
 
 conv1_size = 5
@@ -55,14 +55,15 @@ prediction = tensor.nnet.sigmoid(tensor.dot(out3, W2) + b2)
 loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
 
 # Use Blocks to train this network
-from blocks.algorithms import GradientDescent, Scale
+from blocks.algorithms import GradientDescent, Adam
 from blocks.extensions import Printing, ProgressBar
 from blocks.extensions.monitoring import TrainingDataMonitoring
 from blocks.main_loop import MainLoop
 from blocks_extras.extensions.plot import Plot
 
 algorithm = GradientDescent(cost=loss, parameters=params,
-                            step_rule=Scale(learning_rate=0.1))
+                            step_rule=Adam())
+
 
 # We want to monitor the cost as we train
 loss.name = 'loss'

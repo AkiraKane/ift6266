@@ -14,7 +14,7 @@ train = DogsVsCats(('train',), subset=slice(0, 20000))
 # 8-bit images into floating-point decimals in [0, 1].
 stream = DataStream.default_stream(
     train,
-    iteration_scheme=SequentialScheme(train.num_examples, 128)
+    iteration_scheme=SequentialScheme(train.num_examples, 100)
 )
 
 upscaled_stream = MinimumImageDimensions(stream, (100, 100), which_sources=('image_features',))
