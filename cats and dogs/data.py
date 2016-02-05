@@ -4,7 +4,8 @@ from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme
 from fuel.server import start_server
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension
-from fuel.transformers import Flatten, ScaleAndShift
+from fuel.transformers import Flatten, ScaleAndShift, Cast
+import numpy
 # Load the training set
 train = DogsVsCats(('train',), subset=slice(0, 20000))
 
@@ -27,5 +28,6 @@ cropped_stream = RandomFixedSizeCrop(
 # We'll use a simple MLP, so we need to flatten the images
 # from (channel, width, height) to simply (features,)
 float_stream = ScaleAndShift(cropped_stream, 1./255, 0, which_sources=('image_features',))
+float32_stream = Cast(float_stream, numpy.float32, which_sources=('image_features',))
 
-start_server(float_stream)
+start_server(float32_stream)

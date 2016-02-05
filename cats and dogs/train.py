@@ -18,8 +18,8 @@ filter1_shape = (32, 3, conv1_size, conv1_size)
 poolsize1 = (2, 2)
 input1_shape = (batch_size, 3, image_border_size, image_border_size)
 filters1 = theano.shared(
-    numpy.random.uniform(low=-0.01, high=0.01, size=filter1_shape), 'filter1')
-bias1 = theano.shared(numpy.zeros((filter1_shape[0], )))
+    numpy.random.uniform(low=-0.01, high=0.01, size=filter1_shape).astype(numpy.float32), 'filter1')
+bias1 = theano.shared(numpy.zeros((filter1_shape[0], )).astype(numpy.float32))
 conv1_out_size = (image_border_size - conv1_size + 1)/poolsize1[0]
 
 conv2_size = 5
@@ -27,16 +27,16 @@ filter2_shape = (32, filter1_shape[0], conv2_size, conv2_size)
 poolsize2 = (2, 2)
 input2_shape = (batch_size, filter1_shape[0], conv1_out_size, conv1_out_size)
 filters2 = theano.shared(
-    numpy.random.uniform(low=-0.01, high=0.01, size=filter2_shape), 'filter2')
-bias2 = theano.shared(numpy.zeros((filter2_shape[0], )))
+    numpy.random.uniform(low=-0.01, high=0.01, size=filter2_shape).astype(numpy.float32), 'filter2')
+bias2 = theano.shared(numpy.zeros((filter2_shape[0], )).astype(numpy.float32))
 conv2_out_size = (conv1_out_size - conv2_size + 1)/poolsize2[0]
 
 W1 = theano.shared(
-	numpy.random.uniform(low=-0.01, high=0.01, size=(conv2_out_size**2*filter2_shape[0], 500)), 'W1')
-b1 = theano.shared(numpy.zeros(500))
+	numpy.random.uniform(low=-0.01, high=0.01, size=(conv2_out_size**2*filter2_shape[0], 500)).astype(numpy.float32), 'W1')
+b1 = theano.shared(numpy.zeros(500).astype(numpy.float32))
 W2 = theano.shared(
-	numpy.random.uniform(low=-0.01, high=0.01, size=(500, 1)), 'W2')
-b2 = theano.shared(numpy.zeros(1))
+	numpy.random.uniform(low=-0.01, high=0.01, size=(500, 1)).astype(numpy.float32), 'W2')
+b2 = theano.shared(numpy.zeros(1).astype(numpy.float32))
 
 params = [filters1, bias1, filters2, bias2, W1, b1, W2, b2]
 
@@ -68,7 +68,7 @@ algorithm = GradientDescent(cost=loss, parameters=params,
 loss.name = 'loss'
 extensions = [TrainingDataMonitoring([loss], after_batch=True),
 				Plot('Plotting example', channels=[['loss']],
-				                    after_batch=True)]
+				                    after_batch=True, server_url='http://localhost:8088')]
 
 data_stream = ServerDataStream(('image_features','targets'), False)
 
