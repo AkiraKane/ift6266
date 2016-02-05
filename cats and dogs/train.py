@@ -2,13 +2,14 @@ from fuel.streams import ServerDataStream
 # Create the Theano MLP
 import theano
 from theano import tensor
+from theano import config
 import numpy
 from theano.tensor.nnet.conv import conv2d
 from theano.tensor.signal.downsample import max_pool_2d
 from theano.tensor.nnet import relu
 
-X = tensor.tensor4('image_features')
-T = tensor.matrix('targets')
+X = tensor.tensor4('image_features', dtype='float32')
+T = tensor.matrix('targets', dtype='float32')
 
 batch_size = 100
 image_border_size = 100
@@ -53,13 +54,15 @@ out3 = relu(tensor.dot(flattened, W1) + b1)
 prediction = tensor.nnet.sigmoid(tensor.dot(out3, W2) + b2)
 
 loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
+error = tensor.gt(tensor.abs_(prediction - T), 0.5).mean()
 
 # Use Blocks to train this network
 from blocks.algorithms import GradientDescent, Adam
 from blocks.extensions import Printing, ProgressBar
-from blocks.extensions.monitoring import TrainingDataMonitoring
+from blocks.extensions.monitoring import TrainingDataMonitoring, DataStreamMonitoring
 from blocks.main_loop import MainLoop
 from blocks_extras.extensions.plot import Plot
+from blocks.extensions.saveload import Checkpoint
 
 algorithm = GradientDescent(cost=loss, parameters=params,
                             step_rule=Adam())
@@ -67,11 +70,16 @@ algorithm = GradientDescent(cost=loss, parameters=params,
 
 # We want to monitor the cost as we train
 loss.name = 'loss'
-extensions = [TrainingDataMonitoring([loss], after_batch=True),
-				Plot('Plotting example', channels=[['loss']],
-				                    after_batch=True, server_url='http://localhost:8088')]
 
-data_stream = ServerDataStream(('image_features','targets'), False)
+train_stream = ServerDataStream(('image_features','targets'), False)
+valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
+
+extensions = [
+	TrainingDataMonitoring([loss, error], after_epoch=True),
+	DataStreamMonitoring(variables=[error], data_stream=valid_stream, prefix="valid"),
+	Plot('Plotting example', channels=[['loss'], ['error', 'valid_error']], after_epoch=True, server_url='http://localhost:8088'),
+	Checkpoint('train')
+]
 
 main_loop = MainLoop(data_stream=data_stream, algorithm=algorithm,
                      extensions=extensions)

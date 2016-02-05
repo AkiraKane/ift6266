@@ -7,7 +7,7 @@ from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions,
 from fuel.transformers import Flatten, ScaleAndShift, Cast
 import numpy
 # Load the training set
-train = DogsVsCats(('train',), subset=slice(0, 20000))
+train = DogsVsCats(('train',), subset=slice(15000, 20000))
 
 # We now create a "stream" over the dataset which will return shuffled batches
 # of size 128. Using the DataStream.default_stream constructor will turn our
@@ -30,4 +30,4 @@ cropped_stream = RandomFixedSizeCrop(
 float_stream = ScaleAndShift(cropped_stream, 1./255, 0, which_sources=('image_features',))
 float32_stream = Cast(float_stream, numpy.float32, which_sources=('image_features',))
 
-start_server(float32_stream)
+start_server(float32_stream, port=5558)
