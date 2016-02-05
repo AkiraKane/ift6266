@@ -75,12 +75,13 @@ train_stream = ServerDataStream(('image_features','targets'), False)
 valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 
 extensions = [
-	TrainingDataMonitoring([loss, error], after_epoch=True),
-	DataStreamMonitoring(variables=[error], data_stream=valid_stream, prefix="valid"),
-	Plot('Plotting example', channels=[['loss'], ['error', 'valid_error']], after_epoch=True, server_url='http://localhost:8088'),
-	Checkpoint('train')
+	TrainingDataMonitoring([loss], after_epoch=True),
+	DataStreamMonitoring(variables=[loss], data_stream=valid_stream, prefix="valid"),
+	Plot('Plotting example', channels=[['loss', 'valid_loss']], after_epoch=True, server_url='http://localhost:8088'),
+	Printing(),
+	Checkpoint('train2')
 ]
 
-main_loop = MainLoop(data_stream=data_stream, algorithm=algorithm,
+main_loop = MainLoop(data_stream=train_stream, algorithm=algorithm,
                      extensions=extensions)
 main_loop.run()
