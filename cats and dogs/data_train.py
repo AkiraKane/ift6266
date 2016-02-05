@@ -5,9 +5,15 @@ from fuel.schemes import SequentialScheme
 from fuel.server import start_server
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension
 from fuel.transformers import Flatten, ScaleAndShift, Cast
+import socket
 import numpy
+
 # Load the training set
-train = DogsVsCats(('train',), subset=slice(0, 15000))
+if socket.gethostname() == 'yop':
+	sub = slice(0, 1500)
+else:
+	sub = slice(0, 15000)
+train = DogsVsCats(('train',), subset=sub)
 
 # We now create a "stream" over the dataset which will return shuffled batches
 # of size 128. Using the DataStream.default_stream constructor will turn our

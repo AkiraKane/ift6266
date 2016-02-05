@@ -5,10 +5,15 @@ from fuel.schemes import SequentialScheme
 from fuel.server import start_server
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension
 from fuel.transformers import Flatten, ScaleAndShift, Cast
+import socket
 import numpy
-# Load the training set
-train = DogsVsCats(('train',), subset=slice(15000, 20000))
 
+# Load the training set
+if socket.gethostname() == 'yop':
+	sub = slice(15000, 15500)
+else:
+	sub = slice(15000, 20000)
+train = DogsVsCats(('train',), subset=sub)
 # We now create a "stream" over the dataset which will return shuffled batches
 # of size 128. Using the DataStream.default_stream constructor will turn our
 # 8-bit images into floating-point decimals in [0, 1].
