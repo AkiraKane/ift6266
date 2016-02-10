@@ -78,7 +78,7 @@ valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 extensions = [
 	TrainingDataMonitoring([loss], after_epoch=True),
 	DataStreamMonitoring(variables=[loss, error], data_stream=valid_stream, prefix="valid"),
-	Plot('Plotting example', channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url='http://localhost:8088'),
+	Plot('Plotting example', channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url='http://hades.calculquebec.ca:5042'),
 	Printing(),
 	Checkpoint('train2')
 ]
