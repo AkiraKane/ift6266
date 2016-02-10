@@ -3,10 +3,11 @@ from fuel.datasets.dogs_vs_cats import DogsVsCats
 from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme
 from fuel.server import start_server
-from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension
+from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension, Random2DRotation
 from fuel.transformers import Flatten, ScaleAndShift, Cast
 import socket
 import numpy
+import math
 
 # Load the training set
 if socket.gethostname() == 'yop':
@@ -23,17 +24,19 @@ stream = DataStream.default_stream(
     iteration_scheme=SequentialScheme(train.num_examples, 100)
 )
 
-upscaled_stream = MinimumImageDimensions(stream, (100, 100), which_sources=('image_features',))
-downscaled_stream = DownscaleMinDimension(upscaled_stream, 100, which_sources=('image_features',))
+# upscaled_stream = MinimumImageDimensions(stream, (100, 100), which_sources=('image_features',))
+downscaled_stream = DownscaleMinDimension(stream, 100, which_sources=('image_features',))
 
 # Our images are of different sizes, so we'll use a Fuel transformer
 # to take random crops of size (32 x 32) from each image
 cropped_stream = RandomFixedSizeCrop(
     downscaled_stream, (100, 100), which_sources=('image_features',))
 
+rotated_stream = Random2DRotation(cropped_stream, math.pi/6, which_sources=('image_features',))
+
 # We'll use a simple MLP, so we need to flatten the images
 # from (channel, width, height) to simply (features,)
-float_stream = ScaleAndShift(cropped_stream, 1./255, 0, which_sources=('image_features',))
+float_stream = ScaleAndShift(rotated_stream, 1./255, 0, which_sources=('image_features',))
 float32_stream = Cast(float_stream, numpy.float32, which_sources=('image_features',))
 
 start_server(float32_stream)

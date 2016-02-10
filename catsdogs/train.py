@@ -7,6 +7,7 @@ import numpy
 from theano.tensor.nnet.conv import conv2d
 from theano.tensor.signal.downsample import max_pool_2d
 from theano.tensor.nnet import relu
+import socket
 
 X = tensor.tensor4('image_features', dtype='float32')
 T = tensor.matrix('targets', dtype='float32')
@@ -14,7 +15,7 @@ T = tensor.matrix('targets', dtype='float32')
 batch_size = 100
 image_border_size = 100
 
-conv1_size = 5
+conv1_size = 3
 filter1_shape = (32, 3, conv1_size, conv1_size)
 poolsize1 = (2, 2)
 input1_shape = (batch_size, 3, image_border_size, image_border_size)
@@ -78,7 +79,7 @@ valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 extensions = [
 	TrainingDataMonitoring([loss], after_epoch=True),
 	DataStreamMonitoring(variables=[loss, error], data_stream=valid_stream, prefix="valid"),
-	Plot('Plotting example', channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url='http://hades.calculquebec.ca:5042'),
+	Plot('Training @ %s' % (socket.gethostname(),), channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url='http://hades.calculquebec.ca:5042'),
 	Printing(),
 	Checkpoint('train2')
 ]
