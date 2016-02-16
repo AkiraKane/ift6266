@@ -2,7 +2,7 @@ from layers import convolutional, activation, maxpool, linear
 
 
 
-def get_model(X, batch_size, image_dimension):
+def get_model(X, batch_size, image_dimension, test_model=False):
 
 	input_shape = (batch_size, 3, image_dimension, image_dimension)
 	all_parameters = []
