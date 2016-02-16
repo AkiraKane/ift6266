@@ -22,18 +22,15 @@ image_border_size = 100
 
 # from models.simple_convolutional import get_model
 from models.conv_3_layers import get_model
-prediction, all_parameters = get_model(X, batch_size, image_border_size)
-prediction_test, all_parameters_test = get_model(X, batch_size, image_border_size, test_model=True)
-
-# copy parameters between train model and test model
-for param, param_test in zip(all_parameters, all_parameters_test):
-	param_test.set_value(param.get_value(borrow=True), borrow=True)
+prediction, prediction_test, all_parameters = get_model(X, batch_size, image_border_size)
 
 ## loss and validation error
 loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
 loss_test = tensor.nnet.binary_crossentropy(prediction_test, T).mean()
-error_test = tensor.gt(tensor.abs_(prediction_test - T), 0.5).mean(dtype='float32')
-error_test.name = 'error'
+error = tensor.gt(tensor.abs_(prediction_test - T), 0.5).mean(dtype='float32')
+error.name = 'error'
+loss.name = 'loss'
+loss_test.name = 'loss_test'
 
 if socket.gethostname() == 'yop':
 	host_plot = 'http://localhost:5006'
@@ -51,18 +48,13 @@ from blocks.extensions.saveload import Checkpoint
 algorithm = GradientDescent(cost=loss, parameters=all_parameters,
                             step_rule=Adam())
 
-
-# We want to monitor the cost as we train
-loss.name = 'loss'
-loss_test.name = 'loss_test'
-
 train_stream = ServerDataStream(('image_features','targets'), False)
 valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 
 extensions = [
 	TrainingDataMonitoring([loss], after_epoch=True),
-	DataStreamMonitoring(variables=[loss_test, error_test], data_stream=valid_stream, prefix="valid"),
-	Plot('Training %s @ %s' % (datetime.datetime.now(), socket.gethostname()), channels=[['loss', 'valid_loss_test'], ['valid_error_test']], after_epoch=True, server_url=host_plot),
+	DataStreamMonitoring(variables=[loss_test, error], data_stream=valid_stream, prefix="valid"),
+	Plot('Training %s @ %s' % (datetime.datetime.now(), socket.gethostname()), channels=[['loss', 'valid_loss_test'], ['valid_error']], after_epoch=True, server_url=host_plot),
 	Printing(),
 	Checkpoint('train2')
 ]
