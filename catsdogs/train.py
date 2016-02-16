@@ -7,6 +7,8 @@ import numpy
 from theano.tensor.nnet.conv import conv2d
 from theano.tensor.signal.downsample import max_pool_2d
 from theano.tensor.nnet import relu
+
+from layers import convolutional, activation
 import socket
 
 X = tensor.tensor4('image_features', dtype='float32')
@@ -15,48 +17,20 @@ T = tensor.matrix('targets', dtype='float32')
 batch_size = 100
 image_border_size = 100
 
-conv1_size = 3
-filter1_shape = (32, 3, conv1_size, conv1_size)
-poolsize1 = (2, 2)
-input1_shape = (batch_size, 3, image_border_size, image_border_size)
-filters1 = theano.shared(
-    numpy.random.uniform(low=-0.1, high=0.1, size=filter1_shape).astype(numpy.float32), 'filter1')
-bias1 = theano.shared(numpy.zeros((filter1_shape[0], )).astype(numpy.float32))
-conv1_out_size = (image_border_size - conv1_size + 1)/poolsize1[0]
+## getting model
 
-conv2_size = 5
-filter2_shape = (32, filter1_shape[0], conv2_size, conv2_size)
-poolsize2 = (2, 2)
-input2_shape = (batch_size, filter1_shape[0], conv1_out_size, conv1_out_size)
-filters2 = theano.shared(
-    numpy.random.uniform(low=-0.1, high=0.1, size=filter2_shape).astype(numpy.float32), 'filter2')
-bias2 = theano.shared(numpy.zeros((filter2_shape[0], )).astype(numpy.float32))
-conv2_out_size = (conv1_out_size - conv2_size + 1)/poolsize2[0]
+from models.simple_convolutional import get_model
+prediction, all_parameters = get_model(X, batch_size, image_border_size)
 
-W1 = theano.shared(
-	numpy.random.uniform(low=-0.1, high=0.1, size=(conv2_out_size**2*filter2_shape[0], 500)).astype(numpy.float32), 'W1')
-b1 = theano.shared(numpy.zeros(500).astype(numpy.float32))
-W2 = theano.shared(
-	numpy.random.uniform(low=-0.1, high=0.1, size=(500, 1)).astype(numpy.float32), 'W2')
-b2 = theano.shared(numpy.zeros(1).astype(numpy.float32))
-
-params = [filters1, bias1, filters2, bias2, W1, b1, W2, b2]
-
-conv1 = conv2d(input=X, filters=filters1, filter_shape=filter1_shape, image_shape=input1_shape)
-pooled1 = max_pool_2d(input=conv1, ds=poolsize1, ignore_border=True)
-out1 = relu(pooled1 + bias1.dimshuffle('x', 0, 'x', 'x'))
-
-conv2 = conv2d(input=out1, filters=filters2, filter_shape=filter2_shape, image_shape=input2_shape)
-pooled2 = max_pool_2d(input=conv2, ds=poolsize2, ignore_border=True)
-out2 = relu(pooled2 + bias2.dimshuffle('x', 0, 'x', 'x'))
-
-flattened = out2.flatten(2)
-out3 = relu(tensor.dot(flattened, W1) + b1)
-prediction = tensor.nnet.sigmoid(tensor.dot(out3, W2) + b2)
-
+## loss and validation error
 loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
 error = tensor.gt(tensor.abs_(prediction - T), 0.5).mean(dtype='float32')
 error.name = 'error'
+
+if socket.gethostname() == 'yop':
+	host_plot = 'http://localhost:5006'
+else:
+	host_plot = 'http://hades.calculquebec.ca:5042'
 
 # Use Blocks to train this network
 from blocks.algorithms import GradientDescent, Adam
@@ -66,7 +40,7 @@ from blocks.main_loop import MainLoop
 from blocks_extras.extensions.plot import Plot
 from blocks.extensions.saveload import Checkpoint
 
-algorithm = GradientDescent(cost=loss, parameters=params,
+algorithm = GradientDescent(cost=loss, parameters=all_parameters,
                             step_rule=Adam())
 
 
@@ -79,7 +53,7 @@ valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 extensions = [
 	TrainingDataMonitoring([loss], after_epoch=True),
 	DataStreamMonitoring(variables=[loss, error], data_stream=valid_stream, prefix="valid"),
-	Plot('Training @ %s' % (socket.gethostname(),), channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url='http://hades.calculquebec.ca:5042'),
+	Plot('Training @ %s' % (socket.gethostname(),), channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url=host_plot),
 	Printing(),
 	Checkpoint('train2')
 ]
