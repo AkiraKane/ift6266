@@ -31,17 +31,14 @@ def convolutional(X, X_test, input_shape, n_filters, filter_size):
 
 	output_shape = (input_shape[0], n_filters, input_shape[2], input_shape[3])
 
-	output = theano.sandbox.cuda.dnn.dnn_conv(X, filters, border_mode='half')
-	output_test = theano.sandbox.cuda.dnn.dnn_conv(X_test, filters, border_mode='half')
+	output = conv2d(input=X, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
+	output_test = conv2d(input=X_test, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
 
-	# output = conv2d(input=X, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
-	# output_test = conv2d(input=X_test, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
+	shift_x = (filter_size[0] - 1) // 2
+	shift_y = (filter_size[1] - 1) // 2
 
-	# shift_x = (filter_size[0] - 1) // 2
-	# shift_y = (filter_size[1] - 1) // 2
-
-	# output = output[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
-	# output_test = output_test[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
+	output = output[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
+	output_test = output_test[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
 
 	return output, output_test, [filters], output_shape
 
