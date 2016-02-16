@@ -20,7 +20,8 @@ image_border_size = 100
 
 ## getting model
 
-from models.simple_convolutional import get_model
+# from models.simple_convolutional import get_model
+from models.conv_3_layers import get_model
 prediction, all_parameters = get_model(X, batch_size, image_border_size)
 
 ## loss and validation error
