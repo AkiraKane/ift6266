@@ -21,13 +21,14 @@ from blocks_extras.extensions.plot import Plot
 from blocks.extensions.saveload import Checkpoint
 
 def run(model_name):
+
+	running_on_laptop = socket.gethostname() == 'yop':
+
 	X = tensor.tensor4('image_features', dtype='float32')
 	T = tensor.matrix('targets', dtype='float32')
 
-	batch_size = 100
 	image_border_size = 100
 
-	# from models.conv_3_layers import get_model
 	prediction, prediction_test, all_parameters = get_model(X, batch_size, image_border_size)
 
 	## loss and validation error
@@ -38,10 +39,12 @@ def run(model_name):
 	loss.name = 'loss'
 	loss_test.name = 'loss_test'
 
-	if socket.gethostname() == 'yop':
+	if running_on_laptop:
 		host_plot = 'http://localhost:5006'
+		batch_size = 10
 	else:
 		host_plot = 'http://hades.calculquebec.ca:5042'
+		batch_size = 100
 
 
 	algorithm = GradientDescent(cost=loss, parameters=all_parameters,

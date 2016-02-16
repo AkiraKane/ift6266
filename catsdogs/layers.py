@@ -16,6 +16,10 @@ def convolutional(X, X_test, input_shape, n_filters, filter_size):
 	input_shape
 	n_filters
 	filter_size
+
+	Note
+	----
+	The convolutions are implemented using 
 	"""
 
 	filters_shape = (n_filters, input_shape[1], filter_size[0], filter_size[1])
@@ -24,10 +28,16 @@ def convolutional(X, X_test, input_shape, n_filters, filter_size):
 		'conv_filters'
 	)
 
-	output_shape = (input_shape[0], n_filters, input_shape[2]-filter_size[0]+1, input_shape[3]-filter_size[1]+1)
+	output_shape = (input_shape[0], n_filters, input_shape[2], input_shape[3])
 
-	output = conv2d(input=X, filters=filters, filter_shape=filters_shape, image_shape=input_shape)
-	output_test = conv2d(input=X_test, filters=filters, filter_shape=filters_shape, image_shape=input_shape)
+	output = conv2d(input=X, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
+	output_test = conv2d(input=X_test, filters=filters, filter_shape=filters_shape, image_shape=input_shape, border_mode='full')
+
+	shift_x = (filter_size[0] - 1) // 2
+	shift_y = (filter_size[1] - 1) // 2
+
+	output = output[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
+	output_test = output_test[:,:,shift_x:-shift_x,shift_y:-shift_y]
 
 	return output, output_test, [filters], output_shape
 

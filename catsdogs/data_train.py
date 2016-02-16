@@ -9,11 +9,14 @@ import socket
 import numpy
 import math
 
-# Load the training set
 if socket.gethostname() == 'yop':
 	sub = slice(0, 1500)
+	batch_size = 10
 else:
 	sub = slice(0, 15000)
+	batch_size = 100
+	
+# Load the training set
 train = DogsVsCats(('train',), subset=sub)
 
 # We now create a "stream" over the dataset which will return shuffled batches
@@ -21,7 +24,7 @@ train = DogsVsCats(('train',), subset=sub)
 # 8-bit images into floating-point decimals in [0, 1].
 stream = DataStream.default_stream(
     train,
-    iteration_scheme=SequentialScheme(train.num_examples, 100)
+    iteration_scheme=SequentialScheme(train.num_examples, batch_size)
 )
 
 # upscaled_stream = MinimumImageDimensions(stream, (100, 100), which_sources=('image_features',))
