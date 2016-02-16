@@ -22,12 +22,19 @@ from blocks.extensions.saveload import Checkpoint
 
 def run(model_name):
 
-	running_on_laptop = socket.gethostname() == 'yop':
+	running_on_laptop = socket.gethostname() == 'yop'
 
 	X = tensor.tensor4('image_features', dtype='float32')
 	T = tensor.matrix('targets', dtype='float32')
 
 	image_border_size = 100
+
+	if running_on_laptop:
+		host_plot = 'http://localhost:5006'
+		batch_size = 10
+	else:
+		host_plot = 'http://hades.calculquebec.ca:5042'
+		batch_size = 100
 
 	prediction, prediction_test, all_parameters = get_model(X, batch_size, image_border_size)
 
@@ -38,13 +45,6 @@ def run(model_name):
 	error.name = 'error'
 	loss.name = 'loss'
 	loss_test.name = 'loss_test'
-
-	if running_on_laptop:
-		host_plot = 'http://localhost:5006'
-		batch_size = 10
-	else:
-		host_plot = 'http://hades.calculquebec.ca:5042'
-		batch_size = 100
 
 
 	algorithm = GradientDescent(cost=loss, parameters=all_parameters,
