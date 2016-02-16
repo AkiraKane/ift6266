@@ -73,3 +73,17 @@ def activation(X, X_test, input_shape, activation_type='relu'):
 		raise Exception('this non linearity does not exist: %s' % activation_type)
 
 	return output, output_test, [], input_shape
+
+def dropout(X, X_test, input_shape, p=0.5):
+
+    srng = tensor.shared_randomstreams.RandomStreams()
+
+    # p=1-p because 1's indicate keep and p is prob of dropping
+    mask = srng.binomial(n=1, p=1-p, size=input_shape)
+
+    # The cast is important because
+    # int * float32 = float64 which pulls things off the gpu
+    output = X * tensor.cast(mask, theano.config.floatX)
+    output_test = X_test
+
+    return output, output_test, [], input_shape
