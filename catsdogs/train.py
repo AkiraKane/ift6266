@@ -7,6 +7,7 @@ import numpy
 from theano.tensor.nnet.conv import conv2d
 from theano.tensor.signal.downsample import max_pool_2d
 from theano.tensor.nnet import relu
+import datetime
 
 from layers import convolutional, activation
 import socket
@@ -53,7 +54,7 @@ valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
 extensions = [
 	TrainingDataMonitoring([loss], after_epoch=True),
 	DataStreamMonitoring(variables=[loss, error], data_stream=valid_stream, prefix="valid"),
-	Plot('Training @ %s' % (socket.gethostname(),), channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url=host_plot),
+	Plot('Training %s @ %s' % (datetime.datetime.now(), socket.gethostname()), channels=[['loss', 'valid_loss'], ['valid_error']], after_epoch=True, server_url=host_plot),
 	Printing(),
 	Checkpoint('train2')
 ]
