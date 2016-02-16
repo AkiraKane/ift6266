@@ -19,7 +19,8 @@ def convolutional(X, X_test, input_shape, n_filters, filter_size):
 
 	Note
 	----
-	The convolutions are implemented using 
+	The convolutions are implemented using border_mode=same, that is the 
+	output shape is the same as the input shape for the 2 last dimensions
 	"""
 
 	filters_shape = (n_filters, input_shape[1], filter_size[0], filter_size[1])
@@ -37,7 +38,7 @@ def convolutional(X, X_test, input_shape, n_filters, filter_size):
 	shift_y = (filter_size[1] - 1) // 2
 
 	output = output[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
-	output_test = output_test[:,:,shift_x:-shift_x,shift_y:-shift_y]
+	output_test = output_test[:,:,shift_x:input_shape[2]+shift_x,shift_y:input_shape[3]+shift_y]
 
 	return output, output_test, [filters], output_shape
 
