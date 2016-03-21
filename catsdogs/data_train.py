@@ -6,6 +6,7 @@ from fuel.server import start_server
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension, Random2DRotation
 from fuel.transformers import Flatten, ScaleAndShift, Cast
 import socket
+from transformers import RandomHorizontalFlip
 import numpy
 import math
 
@@ -14,7 +15,7 @@ if socket.gethostname() == 'yop':
 	batch_size = 10
 else:
 	sub = slice(0, 15000)
-	batch_size = 32
+	batch_size = 25
 
 # Load the training set
 train = DogsVsCats(('train',), subset=sub)
@@ -36,10 +37,11 @@ cropped_stream = RandomFixedSizeCrop(
     downscaled_stream, (100, 100), which_sources=('image_features',))
 
 rotated_stream = Random2DRotation(cropped_stream, math.pi/6, which_sources=('image_features',))
+flipped_stream = RandomHorizontalFlip(rotated_stream, which_sources=('image_features',))
 
 # We'll use a simple MLP, so we need to flatten the images
 # from (channel, width, height) to simply (features,)
-float_stream = ScaleAndShift(rotated_stream, 1./255, 0, which_sources=('image_features',))
+float_stream = ScaleAndShift(flipped_stream, 1./255, 0, which_sources=('image_features',))
 float32_stream = Cast(float_stream, numpy.float32, which_sources=('image_features',))
 
 start_server(float32_stream)

@@ -1,5 +1,6 @@
 from fuel.transformers import ExpectsAxisLabels, SourcewiseTransformer
 import numpy
+import random
 
 class FixedSizeCrops(SourcewiseTransformer, ExpectsAxisLabels):
     """Randomly crop images to a fixed window size.
@@ -10,19 +11,6 @@ class FixedSizeCrops(SourcewiseTransformer, ExpectsAxisLabels):
     window_shape : tuple
         The `(height, width)` tuple representing the size of the output
         window.
-    Notes
-    -----
-    This transformer expects to act on stream sources which provide one of
-     * Single images represented as 3-dimensional ndarrays, with layout
-       `(channel, height, width)`.
-     * Batches of images represented as lists of 3-dimensional ndarrays,
-       possibly of different shapes (i.e. images of differing
-       heights/widths).
-     * Batches of images represented as 4-dimensional ndarrays, with
-       layout `(batch, channel, height, width)`.
-    The format of the stream will be un-altered, i.e. if lists are
-    yielded by `data_stream` then lists will be yielded by this
-    transformer.
     """
     def __init__(self, data_stream, window_shape, **kwargs):
         self.window_shape = window_shape
@@ -42,3 +30,21 @@ class FixedSizeCrops(SourcewiseTransformer, ExpectsAxisLabels):
         output[:,:,-windowed_width:] = example[:,-windowed_height:,-windowed_width:]
 
         return output
+
+class RandomHorizontalFlip(SourcewiseTransformer):
+    """
+
+    """
+    def __init__(self, data_stream, **kwargs):
+        kwargs.setdefault('produces_examples', data_stream.produces_examples)
+        super(RandomHorizontalFlip, self).__init__(data_stream, **kwargs)
+
+    def transform_source_batch(self, batch, source_name):
+        return [self._example_transform(im, source_name) for im in batch]
+
+    def transform_source_example(self, example, source_name):
+        return self._example_transform(example, source_name)
+
+    def _example_transform(self, example, source_name):
+        flip = random.randint(0, 1)*2-1
+        return example[:,:,::flip]
