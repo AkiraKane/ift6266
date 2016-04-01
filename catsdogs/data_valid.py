@@ -13,7 +13,7 @@ if socket.gethostname() == 'yop':
 	batch_size = 10
 else:
 	sub = slice(15000, 20000)
-	batch_size = 32
+	batch_size = 25
 
 # Load the training set
 train = DogsVsCats(('train',), subset=sub)
