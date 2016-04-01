@@ -5,6 +5,7 @@ from fuel.schemes import SequentialScheme
 from fuel.server import start_server
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension
 from fuel.transformers import Flatten, ScaleAndShift, Cast
+from transformers import FixedSizeCrops
 import socket
 import numpy
 
@@ -30,7 +31,7 @@ downscaled_stream = DownscaleMinDimension(upscaled_stream, 100, which_sources=('
 
 # Our images are of different sizes, so we'll use a Fuel transformer
 # to take random crops of size (32 x 32) from each image
-cropped_stream = RandomFixedSizeCrop(
+cropped_stream = FixedSizeCrops(
     downscaled_stream, (100, 100), which_sources=('image_features',))
 
 # We'll use a simple MLP, so we need to flatten the images
