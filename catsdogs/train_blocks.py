@@ -73,7 +73,7 @@ def run(model_name, port_train, port_valid):
 
 if __name__ == "__main__":
 
-	if len(sys.argv) != 2:
+	if len(sys.argv) < 2:
 		print('Usage: python train.py path_to_model.py [port_train] [port_valid]')
 		exit()
 
