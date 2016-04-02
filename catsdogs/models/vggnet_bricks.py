@@ -14,9 +14,9 @@ class VGGNet(FeedforwardSequence, Initializable):
         
         #############################################
         # a first block with 2 convolutions of 32 (3, 3) filters
-        layers.append(Convolutional((3, 3), 32, border_mode='full'))
+        layers.append(Convolutional((3, 3), 32, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 32, border_mode='full'))
+        layers.append(Convolutional((3, 3), 32, border_mode='half'))
         layers.append(Rectifier())
 
         # maxpool with size=(2, 2)
@@ -24,11 +24,11 @@ class VGGNet(FeedforwardSequence, Initializable):
 
         #############################################
         # a 2nd block with 3 convolutions of 64 (3, 3) filters
-        layers.append(Convolutional((3, 3), 64, border_mode='full'))
+        layers.append(Convolutional((3, 3), 64, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 64, border_mode='full'))
+        layers.append(Convolutional((3, 3), 64, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 64, border_mode='full'))
+        layers.append(Convolutional((3, 3), 64, border_mode='half'))
         layers.append(Rectifier())
         
         # maxpool with size=(2, 2)
@@ -36,13 +36,13 @@ class VGGNet(FeedforwardSequence, Initializable):
 
         #############################################
         # a 3rd block with 4 convolutions of 128 (3, 3) filters
-        layers.append(Convolutional((3, 3), 128, border_mode='full'))
+        layers.append(Convolutional((3, 3), 128, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 128, border_mode='full'))
+        layers.append(Convolutional((3, 3), 128, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 128, border_mode='full'))
+        layers.append(Convolutional((3, 3), 128, border_mode='half'))
         layers.append(Rectifier())
-        layers.append(Convolutional((3, 3), 128, border_mode='full'))
+        layers.append(Convolutional((3, 3), 128, border_mode='half'))
         layers.append(Rectifier())
         
         # maxpool with size=(2, 2)
