@@ -1,14 +1,15 @@
 # Let's load and process the dataset
 from fuel.datasets.dogs_vs_cats import DogsVsCats
-from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme
 from fuel.server import start_server
+from fuel.streams import DataStream
 from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension, Random2DRotation
 from fuel.transformers import Flatten, ScaleAndShift, Cast
-import socket
-from transformers import RandomHorizontalFlip
 import numpy
 import math
+import socket
+import sys
+from transformers import RandomHorizontalFlip
 
 if socket.gethostname() == 'yop':
 	sub = slice(0, 1500)
@@ -16,6 +17,11 @@ if socket.gethostname() == 'yop':
 else:
 	sub = slice(0, 15000)
 	batch_size = 25
+
+if len(sys.argv) > 1:
+	port = int(sys.argv[1])
+else:
+	port = 5557
 
 # Load the training set
 train = DogsVsCats(('train',), subset=sub)
@@ -44,4 +50,4 @@ flipped_stream = RandomHorizontalFlip(rotated_stream, which_sources=('image_feat
 float_stream = ScaleAndShift(flipped_stream, 1./255, 0, which_sources=('image_features',))
 float32_stream = Cast(float_stream, numpy.float32, which_sources=('image_features',))
 
-start_server(float32_stream)
+start_server(float32_stream, port=port)

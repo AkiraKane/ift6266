@@ -21,7 +21,7 @@ from blocks.main_loop import MainLoop
 from blocks_extras.extensions.plot import Plot
 from blocks.extensions.saveload import Checkpoint
 
-def run(model_name):
+def run(model_name, port_train, port_valid):
 
 	running_on_laptop = socket.gethostname() == 'yop'
 
@@ -54,8 +54,8 @@ def run(model_name):
 	                            step_rule=Scale(0.01))
 	
 
-	train_stream = ServerDataStream(('image_features','targets'), False)
-	valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
+	train_stream = ServerDataStream(('image_features','targets'), False, port=port_train)
+	valid_stream = ServerDataStream(('image_features','targets'), False, port=port_valid)
 
 	extensions = [
 		Timing(),
@@ -74,17 +74,24 @@ def run(model_name):
 if __name__ == "__main__":
 
 	if len(sys.argv) != 2:
-		print('Usage: python train.py path_to_model.py')
+		print('Usage: python train.py path_to_model.py [port_train] [port_valid]')
 		exit()
 
 	# prepare path for import
-	path = sys.argv[-1]
+	path = sys.argv[1]
 	if path[-3:] == '.py':
 		path = path[:-3]
 	path = path.replace('/','.')
+
+	if len(sys.argv) > 3:
+		port_train = int(sys.argv[2])
+		port_valid = int(sys.argv[3])
+	else:
+		port_train = 5557
+		port_valid = 5558
 	
 	# import right model
 	get_model = __import__(path, globals(), locals(), ['get_model']).get_model
 
 	# run the training
-	run(path.split('.')[-1])
+	run(path.split('.')[-1], port_train, port_valid)
