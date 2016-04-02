@@ -56,7 +56,7 @@ class VGGNet(FeedforwardSequence, Initializable):
 
         application_methods = [self.conv_sequence.apply, flattener.apply, self.top_mlp.apply]
 
-        super(VGGNet, self).__init__(application_methods, biases_init=Constant(0), weights_init=Uniform(width=.2), **kwargs)
+        super(VGGNet, self).__init__(application_methods, biases_init=Constant(0), weights_init=Uniform(width=.1), **kwargs)
 
 
     def _push_allocation_config(self):

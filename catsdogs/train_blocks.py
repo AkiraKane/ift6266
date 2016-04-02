@@ -13,7 +13,7 @@ import datetime
 from layers import convolutional, activation
 import socket
 
-from blocks.algorithms import GradientDescent, Adam
+from blocks.algorithms import GradientDescent, Adam, Scale
 from blocks.extensions import Printing, Timing
 from blocks.extensions.monitoring import TrainingDataMonitoring, DataStreamMonitoring
 from blocks.graph import ComputationGraph
@@ -50,7 +50,9 @@ def run(model_name):
 	loss_test.name = 'loss_test'
 
 	algorithm = GradientDescent(cost=loss, parameters=cg.parameters,
-	                            step_rule=Adam())
+#	                            step_rule=Adam())
+	                            step_rule=Scale(0.01))
+	
 
 	train_stream = ServerDataStream(('image_features','targets'), False)
 	valid_stream = ServerDataStream(('image_features','targets'), False, port=5558)
