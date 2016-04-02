@@ -83,4 +83,4 @@ def get_model(X, batch_size, image_dimension):
 
     output_test = tensor.switch(tensor.ge(tensor.abs_(output_test1-0.5), tensor.abs_(output_test2-0.5)), output_test1, output_test2)
 
-    return output, output_test2
+    return output, output_test
