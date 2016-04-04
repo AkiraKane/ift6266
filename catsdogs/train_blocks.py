@@ -41,9 +41,10 @@ def run(model_name, port_train, port_valid):
 
 	cg = ComputationGraph([prediction])
 
+	T2 = T * 0.8 + 0.1
 	## loss and validation error
-	loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
-	loss_test = tensor.nnet.binary_crossentropy(prediction_test, T).mean()
+	loss = tensor.nnet.binary_crossentropy(prediction, T2).mean()
+	loss_test = tensor.nnet.binary_crossentropy(prediction_test, T2).mean()
 	error = tensor.gt(tensor.abs_(prediction_test - T), 0.5).mean(dtype='float32')
 	error.name = 'error'
 	loss.name = 'loss'
