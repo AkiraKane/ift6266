@@ -34,18 +34,20 @@ def run(model_name, port_train, port_valid):
 		host_plot = 'http://localhost:5006'
 		batch_size = 10
 	else:
-		host_plot = 'http://localhost:5006'
-		# host_plot = 'http://hades.calculquebec.ca:5042'
+		host_plot = 'http://hades.calculquebec.ca:5042'
 		batch_size = 32
 
 	prediction, prediction_test = get_model(X, batch_size, image_border_size)
 
+	prediction = prediction * 1.2 - 0.1
+	prediction_test = prediction_test * 1.2 - 0.1
+
 	cg = ComputationGraph([prediction])
 
-	T2 = T * 0.8 + 0.1
 	## loss and validation error
-	loss = tensor.nnet.binary_crossentropy(prediction, T2).mean()
-	loss_test = tensor.nnet.binary_crossentropy(prediction_test, T2).mean()
+        loss = ((prediction - T)**2).mean()
+        loss_test = ((prediction_test - T)**2).mean()
+
 	error = tensor.gt(tensor.abs_(prediction_test - T), 0.5).mean(dtype='float32')
 	error.name = 'error'
 	loss.name = 'loss'

@@ -16,7 +16,7 @@ import socket
 from blocks.algorithms import GradientDescent, Adam, Scale
 from blocks.extensions import Printing, Timing
 from blocks.extensions.monitoring import TrainingDataMonitoring, DataStreamMonitoring
-from blocks.graph import ComputationGraph
+from blocks.graph import ComputationGraph, apply_batch_normalization, get_batch_normalization_updates
 from blocks.main_loop import MainLoop
 from blocks_extras.extensions.plot import Plot
 from blocks.extensions.saveload import Checkpoint
@@ -34,18 +34,25 @@ def run(model_name, port_train, port_valid):
 		host_plot = 'http://localhost:5006'
 		batch_size = 10
 	else:
-		host_plot = 'http://localhost:5006'
-		# host_plot = 'http://hades.calculquebec.ca:5042'
+		host_plot = 'http://hades.calculquebec.ca:5042'
 		batch_size = 32
 
 	prediction, prediction_test = get_model(X, batch_size, image_border_size)
 
-	cg = ComputationGraph([prediction])
+	alpha = 0.1
 
-	T2 = T * 0.8 + 0.1
+	cg = ComputationGraph([prediction])
+	cg = apply_batch_normalization(cg)
+	pop_updates = get_batch_normalization_updates(cg)
+	extra_updates = [(p, m * alpha + p * (1 - alpha)) for p, m in pop_updates]
+
+	prediction = cg.outputs[0]
+
+        # trick !
+	# T2 = T * 0.8 + 0.1
 	## loss and validation error
-	loss = tensor.nnet.binary_crossentropy(prediction, T2).mean()
-	loss_test = tensor.nnet.binary_crossentropy(prediction_test, T2).mean()
+	loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
+	loss_test = tensor.nnet.binary_crossentropy(prediction_test, T).mean()
 	error = tensor.gt(tensor.abs_(prediction_test - T), 0.5).mean(dtype='float32')
 	error.name = 'error'
 	loss.name = 'loss'
@@ -54,6 +61,8 @@ def run(model_name, port_train, port_valid):
 	algorithm = GradientDescent(cost=loss, parameters=cg.parameters,
 #	                            step_rule=Adam())
 	                            step_rule=Scale(0.01))
+
+	algorithm.add_updates(extra_updates)
 	
 
 	train_stream = ServerDataStream(('image_features','targets'), False, port=port_train)
