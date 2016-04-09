@@ -34,7 +34,8 @@ def run(model_name, port_train, port_valid):
 		host_plot = 'http://localhost:5006'
 		batch_size = 10
 	else:
-		host_plot = 'http://hades.calculquebec.ca:5042'
+		host_plot = 'http://localhost:5006'
+		# host_plot = 'http://hades.calculquebec.ca:5042'
 		batch_size = 32
 
 	prediction, prediction_test = get_model(X, batch_size, image_border_size)

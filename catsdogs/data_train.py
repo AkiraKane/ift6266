@@ -3,13 +3,13 @@ from fuel.datasets.dogs_vs_cats import DogsVsCats
 from fuel.schemes import SequentialScheme
 from fuel.server import start_server
 from fuel.streams import DataStream
-from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, DownscaleMinDimension, Random2DRotation
+from fuel.transformers.image import RandomFixedSizeCrop, MinimumImageDimensions, Random2DRotation
 from fuel.transformers import Flatten, ScaleAndShift, Cast
 import numpy
 import math
 import socket
 import sys
-from transformers import RandomHorizontalFlip
+from transformers import RandomHorizontalFlip, DownscaleMinDimension
 
 if socket.gethostname() == 'yop':
 	sub = slice(0, 1500)
