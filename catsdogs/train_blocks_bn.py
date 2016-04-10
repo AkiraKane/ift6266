@@ -13,7 +13,8 @@ import datetime
 from layers import convolutional, activation
 import socket
 
-from blocks.algorithms import GradientDescent, Adam, Scale
+from blocks.algorithms import GradientDescent, Adam, Scale, Momentum
+from blocks.model import Model
 from blocks.extensions import Printing, Timing
 from blocks.extensions.monitoring import TrainingDataMonitoring, DataStreamMonitoring
 from blocks.graph import ComputationGraph, apply_batch_normalization, get_batch_normalization_updates
@@ -34,8 +35,9 @@ def run(model_name, port_train, port_valid):
 		host_plot = 'http://localhost:5006'
 		batch_size = 10
 	else:
-		host_plot = 'http://hades.calculquebec.ca:5042'
-		batch_size = 32
+		host_plot = 'http://localhost:5006'
+		# host_plot = 'http://hades.calculquebec.ca:5042'
+		batch_size = 256
 
 	prediction, prediction_test = get_model(X, batch_size, image_border_size)
 
@@ -47,8 +49,9 @@ def run(model_name, port_train, port_valid):
 	extra_updates = [(p, m * alpha + p * (1 - alpha)) for p, m in pop_updates]
 
 	prediction = cg.outputs[0]
-
-        # trick !
+	model = Model(prediction_test)
+    
+    # trick !
 	# T2 = T * 0.8 + 0.1
 	## loss and validation error
 	loss = tensor.nnet.binary_crossentropy(prediction, T).mean()
@@ -59,8 +62,9 @@ def run(model_name, port_train, port_valid):
 	loss_test.name = 'loss_test'
 
 	algorithm = GradientDescent(cost=loss, parameters=cg.parameters,
-#	                            step_rule=Adam())
-	                            step_rule=Scale(0.01))
+	                            # step_rule=Adam(0.01))
+	                            # step_rule=Scale(0.01))
+	                            step_rule=Momentum(learning_rate=0.01, momentum=0.9))
 
 	algorithm.add_updates(extra_updates)
 	
@@ -74,11 +78,11 @@ def run(model_name, port_train, port_valid):
 		DataStreamMonitoring(variables=[error], data_stream=valid_stream, prefix="valid"),
 		Plot('%s %s @ %s' % (model_name, datetime.datetime.now(), socket.gethostname()), channels=[['loss'], ['error', 'valid_error']], after_epoch=True, server_url=host_plot),
 		Printing(),
-		Checkpoint('train2')
+		Checkpoint('/tmp/train_bn2')
 	]
 
 	main_loop = MainLoop(data_stream=train_stream, algorithm=algorithm,
-	                     extensions=extensions)
+	                     extensions=extensions, model=model)
 	main_loop.run()
 
 
